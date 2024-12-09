@@ -1,1 +1,1 @@
-# mind_aim2-2_AMR
+# Assessing the relationship between antibiotic use and resistance 
