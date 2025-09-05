@@ -25,12 +25,12 @@ bugs_ordered <- c("Staphylococcus aureus",
 
 ################################################################################
 # Figure A: Antibiogram incidence plot
-load("P:/ORD_Samore_202109019D/Mui/results/aim2-2/mind_aim2-2_figureA_phenotype_trend.RData") # figureA
+load("results/figure1/mind_aim2-2_figure1A_phenotype_trend_zoom.RData") # figureA
 
 
 ################################################################################
 # Figure B: Plot of GEE time trend results
-df_time_trend <- read.csv("results/mind_aim2-2_phenotype_gee_time_trend_results.csv", header = T)
+load("results/figure1/mind_aim2-2_figure1B_phenotype_gee_time_trend_results.RData") # df_time_trend
 
 df_gee <- bind_rows(df_time_trend, .id = "organismofinterest") %>% 
   mutate(time_period = factor(time_period, levels = c("2020-2021", "2007-2019", "2007-2021")), 
