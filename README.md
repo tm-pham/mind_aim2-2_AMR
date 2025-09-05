@@ -1,6 +1,6 @@
 # Antimicrobial selection for resistance in four major pathogens in the US Veterans Affairs Healthcare System, 2007-2021
 
-Corresponding author: Thi Mui Pham (tmpham@hsph.harvard.edu)
+Corresponding author: Thi Mui Pham (mui.k.pham@gmail.com)
 
 This repository accompanies the manuscript 
 
