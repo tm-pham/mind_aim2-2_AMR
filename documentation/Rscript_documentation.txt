@@ -1,0 +1,4 @@
+Order under which scripts should be run for multinomial logistic regression:
+1. mind_aims2-2_function_pathwork_facility_filter.R
+2. mind_aim2-2_function_data_prep.R
+3. mind_aim2-2_runfile_SA_mblogit.R
