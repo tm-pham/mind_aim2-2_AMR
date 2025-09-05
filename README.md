@@ -23,3 +23,19 @@ We provide the code for
 - reproducing the multinomial logistic regression analyses.
 
 Individual-level patient facility-level data cannot be provided due to VA Privacy Practices. A data dictionary that represents the original data will be provided along with supporting documentation (statistical/analytic code) for the generalized estimating equations (GEE) analysis). The corresponding data and scripts can be found in the folders `data` and `code`, respectively. 
+
+## Structure
+### code/
+This folder contains the code to reproduce the results and figures of the manuscript. 
+
+### data/
+This folder contains data that serves as input for the code. 
+
+### documentation/
+This folder contains information about the datasets such as data dictionaries. 
+
+### results/
+This folder contains non-figure output of the analyses. 
+
+### figures/
+This folder contains the figure files. 
