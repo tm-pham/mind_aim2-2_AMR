@@ -1,27 +1,24 @@
 # ============================================================================ #
 # Project: MInD Aim 2.2
 # Author: Thi Mui Pham, mui.k.pham@gmail.com
-# Title: Configuration file for figures (Epidemics conference)
+# Title: Configuration file for figures in manuscript
 # ============================================================================ #
-
-################################################################################
-# Required packages
+# Required packages ------------------------------------------------------------
 library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(tidyverse)
 library(ggh4x) # facet_wrap_nested
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Paths
 FIGURES <- "/Users/tm-pham/academia/hsph/mind/publications/aim2-2/figures"
 RESULTS <-  "/Users/tm-pham/academia/hsph/mind/publications/aim2-2/results"
 
-
+# Load plotting template -------------------------------------------------------
 source("plotting_template.R")
 
-
-################################################################################
+# ------------------------------------------------------------------------------
 # Order of pathogens
 bugs_ordered <- c(
   "Staphylococcus aureus", 
@@ -30,7 +27,7 @@ bugs_ordered <- c(
   "Pseudomonas aeruginosa"
 )
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Phenotype order
 FQL_phenotype_order <- c(
   "R-R-R",
@@ -76,7 +73,7 @@ CPM_phenotype_order <- c(
   "S-S-S"
 )
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Combination Organism-phenotype order
 org_ab_order <- c(
   # Staphylococcus aureus
@@ -98,8 +95,8 @@ facet_table <- as.data.frame(cbind(organismofinterest = bugs_ordered,
                                    facet_labs = facet_labs))
 
 
-################################################################################
-# Define colors for each species-phenotype combination -------------------------
+# ------------------------------------------------------------------------------
+# Define colors for each species-phenotype combination
 pathogen_colors <- c(
   "Staphylococcus aureus" = "#E69F00",
   "Escherichia coli" = "#00496FFF",
@@ -149,7 +146,7 @@ phenotype_colors <- c(
   "Pseudomonas aeruginosa__S-S-S" = "#4AA3A2"
 )
 
-# Trend colors
+# Trend colors -----------------------------------------------------------------
 trend_colors <- c(
   "Increasing" = "antiquewhite4",    
   "Decreasing" = "#FFFFFF",    

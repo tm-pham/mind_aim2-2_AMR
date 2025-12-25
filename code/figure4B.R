@@ -3,20 +3,36 @@
 # PLOT
 # Author: Thi Mui Pham, t.m.pham@hsph.harvard.edu
 # Title: Figure 4B
-# Description: multinomial logit model forest plot for E coli and K pneumoniae
+# ------------------------------------------------------------------------------
+# Description:
+# FIGURE 4. Effect of recent antimicrobial prescribing on antimicrobial 
+# resistance profiles in four target pathogens. 
+# (B) Effects of recent 3/4GC (left) and BL/BLI (right) prescribing on E coli 
+# (top) and K pneumoniae (bottom) AMR profiles.
+# Patchwork data were used for all analyses, as described in the Appendix p. 41.
+# AMR profiles used as outcome categories in the multilevel multinomial logistic 
+# regression model are shown on the y-axis. The nested facet strip below the 
+# pathogen header identifies the antimicrobial class used as the primary 
+# exposure in the analysis. The x-axis shows the percent change in the odds of 
+# each AMR profile associated with one additional treatment day per 100 
+# patient-days of exposure to the specified antimicrobial class during the 
+# preceding 14 days (expressed per 1000 patient-days), relative to isolates 
+# susceptible to all key classes (S–S–S). Points indicate model estimates; 
+# thick bars represent 80% confidence intervals and thin bars 95% intervals. 
+# Grey backgrounds highlight pathogen–antimicrobial combinations for which an 
+# association between prescribing and resistance was hypothesised. 
 # ============================================================================ #
-
-################################################################################
-# Load config file 
+remove(list = ls())
+# Load config file -------------------------------------------------------------
 source(here::here("code", "00_config.R")) # phenotype_colors, bugs_ordered
 
-################################################################################
+# ------------------------------------------------------------------------------
+# DATA PREPARATION
+# ------------------------------------------------------------------------------
 # Load data 
 ec_data <- read.csv(paste0(RESULTS, "/figure3/mind_aim2-2_EC_6_mblogit_table_abx_results.csv"))
 kp_data <- read.csv(paste0(RESULTS, "/figure3/mind_aim2-2_KP_5_mblogit_table_abx_results.csv"))
 
-################################################################################
-# Data preparation
 # Add pathogen identifier
 ec_data$pathogen <- "Escherichia coli"
 kp_data$pathogen <- "Klebsiella pneumoniae"
@@ -61,9 +77,9 @@ KP_BLI_shade_data <- df %>%
   mutate(y_pos = y_pos-5)
 
 
-################################################################################
+# ------------------------------------------------------------------------------
 # PLOT
-################################################################################
+# ------------------------------------------------------------------------------
 (figure4B <- ggplot(df, aes(y = ab_name, x = estimate_interp)) +
    # Facet by pathogen
    facet_nested_wrap(~facet_labs + term, scales = "free") + 
@@ -131,7 +147,6 @@ KP_BLI_shade_data <- df %>%
      panel.background = element_rect(fill = "transparent", color = "NA")
    ))
 
+# Save figure ------------------------------------------------------------------
 saveRDS(figure4B, paste0(RESULTS, "/figure4/figure4B_Enterobacterales.rds"))
-
-
 

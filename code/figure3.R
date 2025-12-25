@@ -1,24 +1,38 @@
 # ============================================================================ #
 # Project: MInD Aim 2.2
-# PLOT
-# Author: Thi Mui Pham, t.m.pham@hsph.harvard.edu
-# Title: Figure 3 - multinomial logit model forest plot of fluoroquinolone 
-# effects on antibiotic resistance outcomes across four pathogens
+# Author: Thi Mui Pham, mui.k.pham@gmail.com
+# Title: Figure 3 for manuscript 
+# ------------------------------------------------------------------------------
+# Description: 
+# FIGURE 3. Effect of recent fluoroquinolone prescribing on antimicrobial 
+# resistance profiles in four target pathogens. 
+# Patchwork data were used for all analyses (Appendix p. 41). 
+# Each panel shows results for one pathogen, with key antimicrobial classes 
+# defining the pathogen-specific AMR profiles listed in the panel header. 
+# AMR profiles used as outcome categories in the multinomial logistic regression 
+# model are shown on the y-axis. 
+# The x-axis shows the percentage change in the odds of each AMR profile 
+# associated with an additional treatment day of fluoroquinolone exposure per 
+# 100 patient-days during the preceding 14 days (per 1000 patient-days). 
+# Effects are shown relative to isolates susceptible to all key classes (S–S–S). 
+# Points represent estimated effects; thick bars denote 80% confidence intervals 
+# and thin bars 95% confidence intervals. Grey backgrounds highlights 
+# pathogen–antimicrobial combinations for which an association between 
+# prescribing and resistance was hypothesised. 
 # ============================================================================ #
-################################################################################
-# Load config file
-source(here::here("00_config.R")) # phenotype_colors, bugs_ordered
+remove(list = ls())
+# Load config file -------------------------------------------------------------
+source(here::here("00_config.R")) # phenotype_colors, bugs_ordered, ...
 
-################################################################################
-# Load data 
+# Load data --------------------------------------------------------------------
 sa_data <- read.csv(paste0(RESULTS, "/figure3/mind_aim2-2_SA_4_mblogit_table_abx_results.csv"))
 ec_data <- read.csv(paste0(RESULTS, "/figure3/mind_aim2-2_EC_6_mblogit_table_abx_results.csv"))
 kp_data <- read.csv(paste0(RESULTS, "/figure3/mind_aim2-2_KP_5_mblogit_table_abx_results.csv"))
 pa_data <- read.csv(paste0(RESULTS, "/figure3/mind_aim2-2_PA_5_mblogit_table_abx_results.csv"))
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Data preparation
-################################################################################
+# ------------------------------------------------------------------------------
 # Add pathogen identifier
 sa_data$pathogen <- "Staphylococcus aureus"
 ec_data$pathogen <- "Escherichia coli"
@@ -29,7 +43,6 @@ pa_data$pathogen <- "Pseudomonas aeruginosa"
 all_data <- bind_rows(sa_data, ec_data, kp_data, pa_data)
 
 # Filter for FQL term where flq == 1
-# Filter for FQL term
 fql_data <- all_data %>%
   filter(term == "FQL") %>%
   select(pathogen, ab_name, term, flq, estimate_interp, 
@@ -61,10 +74,9 @@ fql_data <- all_data %>%
 shade_data <- fql_data %>%
   filter(substr(as.character(ab_name), 1, 1) == "R")
 
-################################################################################
+# ------------------------------------------------------------------------------
 # PLOT
-################################################################################
-# Create plot
+# ------------------------------------------------------------------------------
 (figure3 <- ggplot(fql_data, aes(y = ab_name, x = estimate_interp)) +
   # Grey background for R-* phenotypes
   geom_rect(
@@ -119,7 +131,7 @@ shade_data <- fql_data %>%
     panel.background = element_rect(color = "white")
   ))
 
-# Save the plot at high resolution for poster
+# Save figure ------------------------------------------------------------------
 ggsave(plot = figure3, paste0(FIGURES, "/figure3/figure3.pdf"), 
        width = 5, height = 11)
 

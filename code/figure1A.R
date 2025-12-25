@@ -1,21 +1,35 @@
 # ============================================================================ #
 # Project: MInD Aim 2.2
 # PLOT
-# Author: Thi Mui Pham, t.m.pham@hsph.harvard.edu
-# Title: Epidemics 2025 poster figure - Phenotype incidence trends with GEE results
+# Author: Thi Mui Pham, mui.k.pham@gmail.com
+# Title: Figure 1A in manuscript (AMR profile incidence trends)
+# ---------------------------------------------------------------------------- #
+# Description: 
+# Trends in antimicrobial resistance profiles among hospital-onset isolates of 
+# four target pathogens in the U.S. Veterans Affairs Healthcare Administration, 
+# February 1, 2007–December 31, 2021. 
+# Patchwork data were used for analyses, as described in the Appendix (p.41). 
+# Each column represents one of four target pathogens; 
+# each row represents an antimicrobial resistance (AMR) profile defined by 
+# susceptibility to three key antimicrobial classes (listed below organism names). 
+# (A) Incidence of hospital-onset isolates per 1,000 admissions stratified by 
+# organism and by AMR profile. 
+# Points represent observed yearly incidence of hospital-onset isolates; 
+# lines show linear regression fits with color-shaded 95% confidence intervals. 
+# Grey backgrounds highlight AMR profiles where estimates indicated increasing trends. 
 # ============================================================================ #
 remove(list = ls())
-################################################################################
-# Load config file
+
+# Load config file -------------------------------------------------------------
 source(here::here("code", "00_config.R")) # phenotype_colors, bugs_ordered
 
 # Load data --------------------------------------------------------------------
 load(here::here("results/figure1", "mind_aim2-2_phenotype_inc_data.RData"))
 load(here::here("results/figure1", "mind_aim2-2_phenotype_gee_time_trend_results.RData")) # df_time_trend
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Data prep
-################################################################################
+# ------------------------------------------------------------------------------
 df_gee <- bind_rows(df_time_trend, .id = "organismofinterest") %>% 
   mutate(time_period = factor(time_period, levels = c("2020-2021", "2007-2019", "2007-2021")), 
          organismofinterest = factor(organismofinterest, levels = bugs_ordered)) %>% 
@@ -35,9 +49,9 @@ df_plot <- df_ab_year %>%
   mutate(org_ab = paste0(organismofinterest, "__", ab_name), 
          facet_lab = factor(facet_lab, levels = facet_labs))
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Pathogen-specific Phenotype color definitions
-################################################################################
+# ------------------------------------------------------------------------------
 # Background data: one row per facet panel
 facet_backgrounds <- df_plot %>%
   group_by(ab_name, facet_lab) %>%
@@ -49,9 +63,9 @@ panel_info <- df_plot %>%
   mutate(has_data = n_obs > 0)
 
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Plot
-################################################################################
+# ------------------------------------------------------------------------------
 figure1A <- ggplot(df_plot, aes(x = ymd(date_year, truncated = 2), y = inc, color = org_ab)) +
   # 2) Faceting
   ggh4x::facet_nested(
@@ -116,6 +130,7 @@ figure1A <- ggplot(df_plot, aes(x = ymd(date_year, truncated = 2), y = inc, colo
   )
 print(figure1A)
 
+# Save plot --------------------------------------------------------------------
 saveRDS(figure1A, file = paste0(RESULTS, "/figure1/figure1A_phenotype_trends.rds"))
 
 ggsave(filename = "figure1A_phenotype_trends.pdf",

@@ -1,22 +1,41 @@
 # ============================================================================ #
 # Project: MInD Aim 2.2
-# Title: Figure 2 for manuscript
 # Author: Thi Mui Pham, mui.k.pham@gmail.com
+# Title: Figure 2 for manuscript
 # ---------------------------------------------------------------------------- #
-# 2A: Barplot of antibiotic use
-# 2B: GEE time trend results for antibiotic use
+# Figure 2. Trends in antimicrobial prescribing in the Veterans Affairs 
+# Healthcare Administration, February 1, 2007–March 31, 2022.
+# (A) Bar plots show overall antimicrobial prescribing rates, expressed as days 
+# of therapy per 1,000 patient-days, in 138 VA medical centres for key 
+# antimicrobial classes. Blue-shaded regions indicate time periods corresponding 
+# to those analysed in panel B.
+# (B) GEE time trend results for antibiotic use
+# Average annual percentage change (AAPC) estimates from time-trend analyses 
+# using generalized estimating equations for the antimicrobial classes in panel 
+# A. Positive AAPC values indicate increasing trends; negative values indicate 
+# decreasing trends. For anti-staphylococcal β-lactams, macrolides, 
+# third-generation cephalosporins, and fluoroquinolones, 
+# interactions with the COVID-19 period were evaluated, and separate trend 
+# estimates are presented if the interaction term was statistically significant 
+# (overall p < 0.05, Bonferroni-corrected). 
+# For fluoroquinolones, the evaluated interaction term was not statistically 
+# significant and thus time trends were reported for the whole study period. 
+# For β-lactam/β-lactamase inhibitors and carbapenems, interactions with 2015 
+# drug shortages and 2011 antimicrobial stewardship initiatives, respectively, 
+# were similarly evaluated. “Before” and “after” denote the periods preceding 
+# and following these breakpoints, as shown on the y-axis. 
+# Further details are provided in the Appendix (pp. 36–37).
 # ============================================================================ #
 remove(list = ls())
-################################################################################
-# Load config file
+# Load config file -------------------------------------------------------------
 source(here::here("code", "00_config.R")) # phenotype_colors, bugs_ordered
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Data preparation
-# Load abx use data 
+# Load antibiotic use data 
 load(here::here("results/figure2/", "mind_aim2-2_overall_abx_comb_CPH34_sum_year.RData")) # DT_abx_overall_year
 
-# Table with abx use labels
+# Create table with abx use variable names and corresponding labels for plotting
 abx_subset <- c("class_ANTISTAPHBETALACTAMS", 
                 "class_MACR", 
                 "class_B_LAC", 
@@ -31,8 +50,9 @@ abx_labels <- c("Anti-staphylococcal beta-lactams",
                 "Fluoroquinolones")
 abx_table <- data.frame(cbind(variable = abx_subset, label = abx_labels))
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Figure 1A: Plot of overall antibiotic use overall
+# ------------------------------------------------------------------------------
 # Define time periods for background shading 
 df_shade <- as.data.frame(cbind(label = abx_labels))
 df_shade$xmin1 <- c(as.Date("2006-07-01", format = "%Y-%m-%d"), 
@@ -62,8 +82,7 @@ data <- DT_abx_overall_year %>%
   left_join(df_shade, by = "label") %>% 
   mutate(label = factor(label, levels = abx_labels))
 
-# ---------------------------------------------------------------------------- #
-# PLOT
+# PLOT -------------------------------------------------------------------------
 (figure2A <- ggplot(data, 
                     aes(x = ymd(date_year, truncated=2), 
                         y = rate, group = date_year)) +
@@ -90,12 +109,14 @@ data <- DT_abx_overall_year %>%
 ggsave(figure2A, file = paste0(FIGURES, "/figure2/figure2A.pdf"), 
        width = 5, height = 14)
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Figure 2B: Plot of GEE time trend results
+# ------------------------------------------------------------------------------
 # Load GEE time trend results
 load(paste0(RESULTS, "/figure2/mind_aim2-2_abx_use_gee_time_trend_results.RData")) # df_time_trend
 
-# Data preparation
+# ------------------------------------------------------------------------------
+# Data preparation 
 df_gee <- df_time_trend %>% 
   filter(antibiotic%in%abx_subset) %>% 
   left_join(abx_table, by = c("antibiotic" = "variable"))%>% 
@@ -120,8 +141,7 @@ df_gee$period <- c(rep(c("before intervention/event", "after intervention/event"
 df_gee$period <- factor(df_gee$period, 
                         levels = c("before intervention/event", "after intervention/event", "overall"))
 
-# ---------------------------------------------------------------------------- #
-# PLOT
+# PLOT -------------------------------------------------------------------------
 (figure2B <- ggplot(df_gee, 
                     aes(x=time.trend, y = time_period)) + 
     facet_wrap(.~label, ncol = 1, scales = "free_y") + 
@@ -146,10 +166,11 @@ df_gee$period <- factor(df_gee$period,
           panel.grid.minor  = element_blank()))
 
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Figure 2: Combine Figure 2A and B
 combined_figure <- figure2A + plot_spacer() +  figure2B + plot_layout(guides = "collect", widths = c(1,0.1,1)) & theme(legend.position = "bottom")
 (figure2 <- combined_figure + plot_annotation(tag_level = 'A') & theme(plot.tag = element_text(size = 18, face = "plain")))
 
+# Save figure ------------------------------------------------------------------
 ggsave(figure2, file = paste0(FIGURES, "/figure2/figure2AB.pdf"), 
        width = 13.5, height = 14.5)

@@ -1,24 +1,34 @@
 # ============================================================================ #
 # Project: MInD Aim 2.2
-# Title: Figure 1 for manuscript
 # Author: Thi Mui Pham, mui.k.pham@gmail.com
+# Title: Figure 1 for manuscript
 # ---------------------------------------------------------------------------- #
-# A: Barplot of phenotype incidence 
-# B: GEE time trend results for phenotype incidence
+# Figure 1. Trends in antimicrobial resistance profiles among hospital-onset 
+# isolates of four target pathogens in the U.S. Veterans Affairs Healthcare 
+# Administration, February 1, 2007–December 31, 2021.
+# (A) AMR profile incidence over time (load from file, creatd in figure1A.R)
+# (B) GEE time trend results for AMR profile incidence
+# Average annual percentage change (AAPC) estimates from time trend analyses 
+# using generalized estimating equations. Interactions with the COVID-19 period 
+# were evaluated; separate estimates are shown if the interaction term was 
+# statistically significant (p < 0.05, Bonferroni-corrected). 
+# Positive AAPC values indicate increasing trends, and negative values 
+# indicate decreasing trends.
 # ============================================================================ #
 remove(list = ls())
-################################################################################
-# Load config file
+# Load config file -------------------------------------------------------------
 source(here::here("00_config.R")) # phenotype_colors, bugs_ordered
 
-################################################################################
-# Figure A: Antibiogram incidence plot
+# ------------------------------------------------------------------------------
+# Figure A: AMR profile incidence plot
+# ------------------------------------------------------------------------------
 load(here::here("results/figure1", "mind_aim2-2_phenotype_inc_data.RData"))
 figure1A <- readRDS(paste0(RESULTS, "/figure1/figure1A_phenotype_trends.rds"))
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Figure B: Plot of GEE time trend results
-# Load data --------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Load data
 load(here::here("results", "figure1", "mind_aim2-2_phenotype_gee_time_trend_results.RData")) # df_time_trend
 
 # Data preparation -------------------------------------------------------------
@@ -44,8 +54,9 @@ panel_info <- df_gee %>%
   count(antibiogram, facet_lab, name = "n_obs") %>%
   mutate(has_data = n_obs > 0)
 
-################################################################################
+# ------------------------------------------------------------------------------
 # PLOT
+# ------------------------------------------------------------------------------
 (figure1B <- ggplot(df_gee, 
                    aes(x=as.numeric(time.trend), y = 1, color = org_ab)) + 
     # manual borders on data-containing panels only
@@ -98,12 +109,13 @@ panel_info <- df_gee %>%
           ))
 
 
-################################################################################
+# ------------------------------------------------------------------------------
 # Combine Figure A and B
 (figure <- (figure1A/figure1B) +  
    plot_layout(nrow = 2, heights = c(1.3, 1)) + 
    plot_annotation(tag_level = 'A') &
    theme(plot.tag = element_text(size = 24, face = "plain")))
 
+# Save figure ------------------------------------------------------------------
 ggsave(figure, file = paste0(FIGURES, "/figure1/figure1AB.pdf"), 
        width = 19, height = 26)
