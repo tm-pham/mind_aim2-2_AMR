@@ -7,8 +7,6 @@
 # This script contains functions to
 # 1. Generate synthetic data for multinomial logistic regression with random effects
 # 2. Fit the hierarchical multinomial logistic regression using the mclogit package
-# 3. Fit the hierarchical multinomial logistic regression using the brms package
-# 4. Perform simulation study (generation + fitting model)
 # ============================================================================ #
 
 # ------------------------------------------------------------------------------
@@ -29,6 +27,7 @@ generate.data <- function(params, # List of parameters
                           abx_params = list(Class_1 = cbind(mean = 4.712055, sd = 0.353727), 
                                             Class_2 = cbind(mean = 4.712055, sd = 0.353727), 
                                             Class_3 = cbind(mean = 4.712055, sd = 0.353727)), # List of parameters for antibiotic use
+                          prefix = "simData", 
                           # Covariates for facility-level antibiotic use 
                           ...
 ) {
@@ -43,21 +42,30 @@ generate.data <- function(params, # List of parameters
   # Make values in params available in this environment
   list2env(params, envir = environment())
   
-  ##############################################################################
+  # ----------------------------------------------------------------------------
   # Check whether parameters used in this functions were provided
-  necessary_params <- c("time_period", "n_facilities", "n_obs_per_facility", "beta0", "beta", "gamma", "sigma", "rho", "random_effect_sd", "antibiograms", "reference")
+  necessary_params <- c("sim_id", "time_period", "n_facilities", "n_obs_per_facility", 
+                        "beta0", "beta", "gamma", "sigma", "rho", 
+                        "random_effect_sd", "antibiograms", "reference")
   if(!all(necessary_params%in% names(params))){
     # Check which parameter is missing
     cat("These parameters are missing", setdiff(necessary_params, names(params)))
     stop("Please provide all necessary parameters.")
   }
   
-  ##############################################################################
+  # Create results folder 
+  output_folder <- here::here("results", "simulation", data_id)
+  dir.create(output_folder, showWarnings = FALSE)
+  
+  sim_id_folder <- here::here("results", "simulation", data_id, sim_id)
+  dir.create(sim_id_folder, showWarnings = FALSE)
+  setwd(sim_id_folder)
+  # ----------------------------------------------------------------------------
   # 1. Total number of observations 
   # = Number of facilites x Number of observations per facility
   n_isolates <- n_facilities * n_obs_per_facility
   
-  ##############################################################################
+  # ----------------------------------------------------------------------------
   # 2. Generate sequence of dates within the time period years
   dates <- seq.Date(from = as.Date(paste0(time_period[1], "-01-01")),
                     to   = as.Date(paste0(time_period[2], "-12-31")),
@@ -74,7 +82,7 @@ generate.data <- function(params, # List of parameters
   sim_data$month <- as.numeric(format(sim_data$date, "%m"))
   sim_data$year  <- as.numeric(format(sim_data$date, "%Y"))
   
-  ##############################################################################
+  # ----------------------------------------------------------------------------
   # Set census region, facility rurality and complexitylevel to 0 if not provided by user
   if(!"census_region" %in% names(params)){
     census_region <- 0
@@ -86,7 +94,7 @@ generate.data <- function(params, # List of parameters
     complexitylevel <- 0
   }
   
-  ##############################################################################
+  # ----------------------------------------------------------------------------
   # 3. Generate lognormal distribution for antibiotic use
   cat("Facility-level antibiotic use is generated according to a lognormal distribution based on provided or default parameters.\n")
   if(length(abx_params) == 0){
@@ -109,7 +117,7 @@ generate.data <- function(params, # List of parameters
   # Merge the facility-date exposures back into the isolate-level data
   sim_data <- left_join(sim_data, facility_date, by = c("facility", "date"))
   
-  ##############################################################################
+  # ----------------------------------------------------------------------------
   # 4. Random intercepts for facilities
   # Normal distribution with mean = 0 and sd = random_effect_sd
   # For each facility and outcome category, simulate a random intercept.
@@ -118,7 +126,7 @@ generate.data <- function(params, # List of parameters
   })
   names(facility_random_effect) <- antibiograms
   
-  ##############################################################################
+  # ----------------------------------------------------------------------------
   # Convert R-R-R to c(1, 1, 1), R-R-S to c(1, 1, 0), etc.
   # Split each string by the delimiter "-"
   abx_list <- strsplit(antibiograms, split = "-")
@@ -127,7 +135,7 @@ generate.data <- function(params, # List of parameters
   names(ab_outcomes) <- antibiograms
 
   
-  ##############################################################################
+  # ----------------------------------------------------------------------------
   # 5. Linear predictor for multinomial outcome
   lp <- list()
   constant <- beta[1]*sim_data$year + beta[2]*sim_data$day + beta[3]*sim_data$month + sum(sigma * c(census_region, facility_rurality, complexitylevel))
@@ -157,7 +165,7 @@ generate.data <- function(params, # List of parameters
   probs_matrix <- cbind(probs_non_ref, prob_ref)
   colnames(probs_matrix) <- c(antibiograms, reference)
   
-  ##############################################################################
+  # ----------------------------------------------------------------------------
   # 6. Simulate antibiogram membership (outcome) using the probabilities 
   # generated in the previous step. 
   # Apply the sampling function over each row of the probability matrix
@@ -166,10 +174,9 @@ generate.data <- function(params, # List of parameters
   cat("Outcome table:\n")
   print(table(outcome))
 
-  ##############################################################################
+  # ----------------------------------------------------------------------------
   # Write output 
-    
-  ##############################################################################
+  # ----------------------------------------------------------------------------
   # Save parameters in text file in the folder 
   # Save time in parameter
   params$time_stamp <- Sys.time()
@@ -178,18 +185,18 @@ generate.data <- function(params, # List of parameters
   }))
   list_to_df[list_to_df$Variable=="time_stamp", "Value"][[1]] <- as.character(format(as.POSIXct(list_to_df[list_to_df$Variable=="time_stamp", "Value"][[1]], origin = "1970-01-01"), "%Y-%m-%d %H:%M:%S %Z"))
   
-  write.table(list_to_df, file = paste0("mind_aim2-2_simReg_", sim_id, "_params.txt"), sep = " = ", 
+  write.table(list_to_df, file = paste0(prefix, sim_id, "_params.txt"), sep = " = ", 
               row.names = F, col.names = F, quote = F)
   
-  ##############################################################################
+  # ----------------------------------------------------------------------------
   # Save antibiogram outcome summary 
-  write.table(table(outcome), file = paste0("mind_aim2-2_simReg_", sim_id, "_outcome_table.txt"), 
+  write.table(table(outcome), file = paste0(prefix, sim_id, "_outcome_table.txt"), 
               row.names = F, quote = F)
   
-  ##############################################################################
+  # ----------------------------------------------------------------------------
   # Save simulation data
   simReg <- list(data = sim_data, params = params, abx_params = abx_params)
-  save(simReg, args_list, file = paste0("mind_aim2-2_simReg_", sim_id, ".RData"))
+  save(simReg, args_list, file = paste0(prefix, sim_id, ".RData"))
   
   return(sim_data)
 }
@@ -212,70 +219,3 @@ mblogit.fit.model <- function(data,
   
   return(model)
 }
-
-# ------------------------------------------------------------------------------
-# Function to fit the hierarchical multinomial logistic regression using the 
-# brms package (Bayesian approach)
-# ------------------------------------------------------------------------------
-brms.fit.model <- function(data, 
-                           formula, 
-                           family = "categorical", 
-                           priors, 
-                           n_iter = 1000, 
-                           n_cores = 3, 
-                           n_chains = 3, 
-                           seed = 123, 
-                           maxTreedepth = 13, 
-                           adaptDelta = 0.99, 
-                           folder_path_prefix){
-  
-  sim_id <- unique(data$sim_id)
-  
-  brms_fit <- brms::brm(formula = formula,
-                        data = data, 
-                        family = "categorical", 
-                        iter = n_iter, 
-                        warmup = floor(n_iter/2), 
-                        cores = n_cores, 
-                        chains = n_chains, 
-                        prior = priors, 
-                        seed = seed, 
-                        control = list(max_treedepth = maxTreedepth, 
-                                       adapt_delta = adaptDelta))
-  
-  # Create folder for the simulation dataset
-  folder_path <- paste0(folder_path_prefix, sim_id)
-  # Check if the folder exists, if not, create it
-  if (!dir.exists(folder_path)) {
-    dir.create(folder_path, recursive = TRUE)
-    message("Folder created successfully!")
-  } else {
-    message(paste0("Folder ", folder_path, " already exists."))
-  }
-  
-  params <- list(formula = formula, family = family, n_iter = n_iter, n_cores = n_cores, n_chains = n_chains)
-  
-  # Save parameters in text file in the folder 
-  list_to_df <- do.call(rbind, lapply(names(params), function(name) {
-    data.frame(Variable = name, Value = I(list(params[[name]])), stringsAsFactors = FALSE)
-  }))
-  
-  write.table(list_to_df, file = paste0(folder_path, "/mind_aim2-2_simReg_", sim_id, "_brms_params.txt"), sep = " = ", 
-              row.names = F, col.names = F, quote = F)
-  
-  return(brms_fit)
-}
-
-# ------------------------------------------------------------------------------
-# Function to perform simulation study
-# ------------------------------------------------------------------------------
-simulation.study <- function(n_simulations, n_facilities, n_obs_per_facility, beta, gamma, random_effect_sd) {
-  results <- replicate(n_simulations, {
-    data <- generate_data(n_facilities, n_obs_per_facility, beta, gamma, random_effect_sd)
-    model <- fit_model(data)
-    coef(summary(model))
-  }, simplify = FALSE)
-  
-  return(results)
-}
-
